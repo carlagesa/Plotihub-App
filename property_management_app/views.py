@@ -23,17 +23,6 @@ def doLogin(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        captcha_token = request.POST.get("g-recaptcha-response")
-        cap_url = "https://www.google.com/recaptcha/api/siteverify"
-        cap_secret = "6Lf77A4qAAAAAD9oLrjKDIqqArOPh8ZfloumCPrR"
-        cap_data = {"secret": cap_secret, "response": captcha_token}
-        cap_server_response = requests.post(url=cap_url, data=cap_data)
-        cap_json = json.loads(cap_server_response.text)
-
-        if not cap_json['success']:
-            messages.error(request, "Invalid Captcha Try Again")
-            return HttpResponseRedirect("/")
-
         email = request.POST.get("email")
         password = request.POST.get("password")
 
@@ -53,7 +42,7 @@ def doLogin(request):
             return HttpResponseRedirect("/")
   
 def GetUserDetails(request):
-    if request.user!=None:
+    if request.user is not None:
         return HttpResponse("User : "+request.user.email+" usertype : "+str(request.user.user_type))
     else:
         return HttpResponse("Please Login First")
@@ -114,7 +103,7 @@ def do_signup_tenant(request):
     password = request.POST.get("password")
     address = request.POST.get("address")
     session_year_id = request.POST.get("session_year")
-    course_id = request.POST.get("course")
+    property_id = request.POST.get("property")
     sex = request.POST.get("sex")
 
     profile_pic = request.FILES['profile_pic']
@@ -126,8 +115,8 @@ def do_signup_tenant(request):
     user = CustomUser.objects.create_user(username=username, password=password, email=email, last_name=last_name,
                                           first_name=first_name, user_type=3)
     user.tenants.address = address
-    property_obj = Properties.objects.get(id=course_id)
-    user.tenants.course_id = property_obj
+    property_obj = Properties.objects.get(id=property_id)
+    user.tenants.property_id = property_obj
     session_year = SessionYearModel.object.get(id=session_year_id)
     user.tenants.session_year_id = session_year
     user.tenants.gender = sex

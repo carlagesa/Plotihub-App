@@ -18,7 +18,7 @@ Home
               <div class="icon">
                 <i class="ion ion-stats-bars"></i>
               </div>
-              <a href="{% url 'staff_take_Arrears' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'staff_take_arrears' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -33,7 +33,7 @@ Home
               <div class="icon">
                 <i class="ion ion-stats-bars"></i>
               </div>
-              <a href="{% url 'staff_take_Arrears' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'staff_take_arrears' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -56,7 +56,7 @@ Home
             <!-- small box -->
             <div class="small-box bg-danger">
               <div class="inner">
-                <h3>{{ subject_count }}</h3>
+                <h3>{{ caretaker_count }}</h3>
 
                 <p>Total Caretakers</p>
               </div>
@@ -161,9 +161,9 @@ Home
 
 
                 var Arrears_list={{ Arrears_list }};
-                var subject_list={{ subject_list|safe }};
+                var caretaker_list={{ caretaker_list|safe }};
                 var barChartData = {
-                  labels  : subject_list,
+                  labels  : caretaker_list,
                   datasets: [
                     {
                       label               : 'Attend Subject Chart',
