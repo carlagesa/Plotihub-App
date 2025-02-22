@@ -1,0 +1,17 @@
+# Mark project as primarily Python
+*.py linguist-language=Python
+*.html linguist-language=Python
+
+# Vendor/static files to not count in language statistics
+property_management_app/static/* linguist-vendored
+property_management_app/static/plugins/* linguist-vendored
+property_management_app/static/dist/* linguist-vendored
+*.js linguist-vendored
+*.css linguist-vendored
+property_management_app/static/plugins/adminlte/* linguist-vendored
+property_management_app/static/dist/adminlte/* linguist-vendored
+property_management_app/static/plugins/fontawesome-free/* linguist-vendored
+property_management_app/static/plugins/jquery/* linguist-vendored
+property_management_app/static/plugins/bootstrap/* linguist-vendored
+
+# Custom static files (if any) will still be counted
