@@ -18,9 +18,9 @@ View Update Arrears
                 <div class="card-body">
                    <div class="form-group">
                     <label>Subject </label>
-                    <select class="form-control" name="subject" id="subject">
-                        {% for subject in Caretakers %}
-                          <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                    <select class="form-control" name="caretaker" id="caretaker">
+                        {% for caretaker in Caretakers %}
+                          <option value="{{ caretaker.id }}">{{ caretaker.caretaker_name }}</option>
                         {% endfor %}
                     </select>
                   </div>
@@ -74,13 +74,13 @@ View Update Arrears
 
 
         $("#fetch_Arrears").click(function(){
-               var subject=$("#subject").val();
+               var caretaker=$("#caretaker").val();
                var session_year=$("#session_year_id").val();
 
             $.ajax({
                     url:'{% url 'get_Arrears_dates' %}',
                     type:'POST',
-                    data:{subject:subject,session_year_id:session_year},
+                    data:{caretaker:caretaker,session_year_id:session_year},
                 })
                 .done(function(response){
                     var json_data=JSON.parse(response);

@@ -931,7 +931,7 @@ $.extend( Responsive.prototype, {
 	 *
 	 * We don't use DataTables' column visibility controls in order to ensure
 	 * that column visibility can Responsive can no-exist. Since only IE8+ is
-	 * supported (and all evergreen browsers of course) the control of the
+	 * supported (and all evergreen browsers of property) the control of the
 	 * display attribute works well.
 	 *
 	 * @param {integer} col      Column index

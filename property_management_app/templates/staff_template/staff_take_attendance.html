@@ -18,9 +18,9 @@ Take Arrears
                 <div class="card-body">
                    <div class="form-group">
                     <label>Subject </label>
-                    <select class="form-control" name="subject" id="subject">
-                        {% for subject in Caretakers %}
-                          <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                    <select class="form-control" name="caretaker" id="caretaker">
+                        {% for caretaker in Caretakers %}
+                          <option value="{{ caretaker.id }}">{{ caretaker.caretaker_name }}</option>
                         {% endfor %}
                     </select>
                   </div>
@@ -69,13 +69,13 @@ Take Arrears
 <script>
     $(document).ready(function(){
         $("#fetch_tenant").click(function(){
-            var subject=$("#subject").val()
+            var caretaker=$("#caretaker").val()
             var session_year=$("#session_year").val()
 
             $.ajax({
                 url:'{% url 'get_tenants' %}',
                 type:'POST',
-                data:{subject:subject,session_year:session_year},
+                data:{caretaker:caretaker,session_year:session_year},
             })
             .done(function(response){
                 var json_data=JSON.parse(response);
@@ -111,7 +111,7 @@ Take Arrears
                         }
                  }).get()
                 var Arrears_date=$("#Arrears_date").val();
-                var subject_id=$("#subject").val();
+                var caretaker_id=$("#caretaker").val();
                 var session_year_id=$("#session_year").val();
                 console.log(tenant_data)
                 tenant_data=JSON.stringify(tenant_data)
@@ -119,7 +119,7 @@ Take Arrears
                 $.ajax({
                         url:'{% url 'save_Arrears_data' %}',
                         type:'POST',
-                        data:{tenant_ids:tenant_data,Arrears_date:Arrears_date,subject_id:subject_id,session_year_id:session_year_id},
+                        data:{tenant_ids:tenant_data,Arrears_date:Arrears_date,caretaker_id:caretaker_id,session_year_id:session_year_id},
                     })
                     .done(function(response){
 

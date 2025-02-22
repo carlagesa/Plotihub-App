@@ -13953,7 +13953,7 @@ module.exports = {
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
 // some bits pass through, and others are simply ignored.  (That would
-// be a valid example of a transform, of course.)
+// be a valid example of a transform, of property.)
 //
 // While the output is causally related to the input, it's not a
 // necessarily symmetric or synchronous transformation.  For example,
@@ -29006,7 +29006,7 @@ function DeflateState() {
    *     adaptation to changes in the input data statistics. (Take for
    *     example a binary file with poorly compressible code followed by
    *     a highly compressible string table.) Smaller buffer sizes give
-   *     fast adaptation but have of course the overhead of transmitting
+   *     fast adaptation but have of property the overhead of transmitting
    *     trees more frequently.
    *   - I can't count above 4
    */

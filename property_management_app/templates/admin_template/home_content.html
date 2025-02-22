@@ -189,205 +189,204 @@ Home
 {% block custom_js %}
 <script>
     $(document).ready(function(){
+        // First chart - Tenant vs Staff
+        var pieData = {
+            labels: ['tenants', 'staffs'],
+            datasets: [{
+                data: [{{ tenant_count }}, {{ staff_count }}],
+                backgroundColor: ['#f56954', '#00a65a']
+            }]
+        };
 
-            var pieData        = {
-                  labels: [
-                      'tenants',
-                      'staffs'
-                  ],
-                  datasets: [
-                    {
-                      data: [{{ tenant_count }},{{ staff_count }}],
-                      backgroundColor : ['#f56954', '#00a65a'],
-                    }
-                  ]
-             };
+        // Parse JSON strings for other variables - ensure proper string escaping
+        try {
+            var caretaker_count_list = JSON.parse('{{ caretaker_count_list|escapejs }}');
+            var property_name_list = JSON.parse('{{ property_name_list|escapejs }}');
+            var tenant_count_list_in_property = JSON.parse('{{ tenant_count_list_in_property|escapejs }}');
+            var tenant_count_list_in_caretaker = JSON.parse('{{ tenant_count_list_in_caretaker|escapejs }}');
+            var caretaker_list = JSON.parse('{{ caretaker_list|escapejs }}');
+            var Arrears_present_list_staff = JSON.parse('{{ arrears_present_list_staff|escapejs }}');
+            var Arrears_absent_list_staff = JSON.parse('{{ arrears_absent_list_staff|escapejs }}');
+            var staff_name_list = JSON.parse('{{ staff_name_list|escapejs }}');
+            var Arrears_present_list_tenant = JSON.parse('{{ arrears_present_list_tenant|escapejs }}');
+            var Arrears_absent_list_tenant = JSON.parse('{{ arrears_absent_list_tenant|escapejs }}');
+            var tenant_name_list = JSON.parse('{{ tenant_name_list|escapejs }}');
+        } catch (e) {
+            console.error('Error parsing JSON data:', e);
+        }
 
-            var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
-            var pieOptions     = {
-              maintainAspectRatio : false,
-              responsive : true,
+        var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
+        var pieOptions     = {
+          maintainAspectRatio : false,
+          responsive : true,
+        }
+        //Create pie or douhnut chart
+        // You can switch between pie and douhnut using the method below.
+        var pieChart = new Chart(pieChartCanvas, {
+          type: 'pie',
+          data: pieData,
+          options: pieOptions
+        });
+
+        //Second Chart for Total caretaker in Each property
+        var donutChartCanvas = $('#donutChart').get(0).getContext('2d')
+        var donutData        = {
+          labels:property_name_list,
+          datasets: [
+            {
+              data: caretaker_count_list,
+              backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
             }
-            //Create pie or douhnut chart
-            // You can switch between pie and douhnut using the method below.
-            var pieChart = new Chart(pieChartCanvas, {
-              type: 'pie',
-              data: pieData,
-              options: pieOptions
-            });
-
-            //Second Chart for Total caretaker in Each property
-                var caretaker_count_list={{ caretaker_count_list }};
-                var property_name_list={{ property_name_list|safe }};
-                var donutChartCanvas = $('#donutChart').get(0).getContext('2d')
-                var donutData        = {
-                  labels:property_name_list,
-                  datasets: [
-                    {
-                      data: caretaker_count_list,
-                      backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
-                    }
-                  ]
-                }
-                var donutOptions     = {
-                  maintainAspectRatio : false,
-                  responsive : true,
-                }
-                //Create pie or douhnut chart
-                // You can switch between pie and douhnut using the method below.
-                var donutChart = new Chart(donutChartCanvas, {
-                  type: 'doughnut',
-                  data: donutData,
-                  options: donutOptions
-                });
+          ]
+        }
+        var donutOptions     = {
+          maintainAspectRatio : false,
+          responsive : true,
+        }
+        //Create pie or douhnut chart
+        // You can switch between pie and douhnut using the method below.
+        var donutChart = new Chart(donutChartCanvas, {
+          type: 'doughnut',
+          data: donutData,
+          options: donutOptions
+        });
 
 
-                //show total tenant in each property
-                var tenant_count_list_in_property={{ tenant_count_list_in_property }};
+        //show total tenant in each property
+        var pieData2        = {
+                labels:property_name_list,
+                datasets: [
+                  {
+                    data: tenant_count_list_in_property,
+                    backgroundColor : ['#f56954', '#00a65a','#aa00ff', '#ff3d00'],
+                  }
+                ]
+           };
 
-                  var pieData2        = {
-                          labels:property_name_list,
-                          datasets: [
-                            {
-                              data: tenant_count_list_in_property,
-                              backgroundColor : ['#f56954', '#00a65a','#aa00ff', '#ff3d00'],
-                            }
-                          ]
-                     };
+          var pieChartCanvas2 = $('#pieChart3').get(0).getContext('2d')
+          var pieOptions2     = {
+            maintainAspectRatio : false,
+            responsive : true,
+          }
+          var pieChart = new Chart(pieChartCanvas2, {
+            type: 'pie',
+            data: pieData2,
+            options: pieOptions2
+          });
 
-                    var pieChartCanvas2 = $('#pieChart3').get(0).getContext('2d')
-                    var pieOptions2     = {
-                      maintainAspectRatio : false,
-                      responsive : true,
-                    }
-                    var pieChart = new Chart(pieChartCanvas2, {
-                      type: 'pie',
-                      data: pieData2,
-                      options: pieOptions2
-                    });
+        //show total tenant in each caretaker
+        var pieData3  = {
+                labels:caretaker_list,
+                datasets: [
+                  {
+                    data: tenant_count_list_in_caretaker,
+                    backgroundColor : ['#f56954', '#00a65a','#aa00ff', '#ff3d00','#bf360c','#ffff00','#00e676','#40c4ff','#f56954', '#00a65a','#aa00ff', '#ff3d00','#bf360c','#ffff00','#00e676','#40c4ff'],
+                  }
+                ]
+           };
 
-                //show total tenant in each caretaker
-                var tenant_count_list_in_caretaker={{ tenant_count_list_in_caretaker }};
-                var caretaker_list={{ caretaker_list|safe }};
+          var pieChartCanvas3 = $('#pieChart4').get(0).getContext('2d')
+          var pieOption3     = {
+            maintainAspectRatio : false,
+            responsive : true,
+          }
+          var pieChart = new Chart(pieChartCanvas3, {
+            type: 'pie',
+            data: pieData3,
+            options: pieOption3
+          });
 
-                  var pieData3  = {
-                          labels:caretaker_list,
-                          datasets: [
-                            {
-                              data: tenant_count_list_in_caretaker,
-                              backgroundColor : ['#f56954', '#00a65a','#aa00ff', '#ff3d00','#bf360c','#ffff00','#00e676','#40c4ff','#f56954', '#00a65a','#aa00ff', '#ff3d00','#bf360c','#ffff00','#00e676','#40c4ff'],
-                            }
-                          ]
-                     };
+              ///Staff Leave vs Arrears Bar Chart
+              var barChartData = {
+                labels  : staff_name_list,
+                datasets: [
+                  {
+                    label               : 'Leaves',
+                    backgroundColor     : 'rgba(60,141,188,0.9)',
+                    borderColor         : 'rgba(60,141,188,0.8)',
+                    pointRadius          : false,
+                    pointColor          : '#3b8bba',
+                    pointStrokeColor    : 'rgba(60,141,188,1)',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data                : Arrears_absent_list_staff
+                  },
+                  {
+                    label               : 'Arrears',
+                    backgroundColor     : 'rgba(210, 214, 222, 1)',
+                    borderColor         : 'rgba(210, 214, 222, 1)',
+                    pointRadius         : false,
+                    pointColor          : 'rgba(210, 214, 222, 1)',
+                    pointStrokeColor    : '#c1c7d1',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(220,220,220,1)',
+                    data                : Arrears_present_list_staff
+                  },
+                ]
+              }
+              var barChartCanvas = $('#barChart1').get(0).getContext('2d')
+              var temp0 = barChartData.datasets[0]
+              var temp1 = barChartData.datasets[1]
+              barChartData.datasets[0] = temp1
+              barChartData.datasets[1] = temp0
 
-                    var pieChartCanvas3 = $('#pieChart4').get(0).getContext('2d')
-                    var pieOption3     = {
-                      maintainAspectRatio : false,
-                      responsive : true,
-                    }
-                    var pieChart = new Chart(pieChartCanvas3, {
-                      type: 'pie',
-                      data: pieData3,
-                      options: pieOption3
-                    });
+              var barChartOptions = {
+                responsive              : true,
+                maintainAspectRatio     : false,
+                datasetFill             : false
+              }
 
-                        ///Staff Leave vs Arrears Bar Chart
-                        var Arrears_present_list_staff={{ Arrears_present_list_staff }};
-                        var Arrears_absent_list_staff={{ Arrears_absent_list_staff }};
-                        var staff_name_list={{ staff_name_list|safe }};
-                        var barChartData = {
-                          labels  : staff_name_list,
-                          datasets: [
-                            {
-                              label               : 'Leaves',
-                              backgroundColor     : 'rgba(60,141,188,0.9)',
-                              borderColor         : 'rgba(60,141,188,0.8)',
-                              pointRadius          : false,
-                              pointColor          : '#3b8bba',
-                              pointStrokeColor    : 'rgba(60,141,188,1)',
-                              pointHighlightFill  : '#fff',
-                              pointHighlightStroke: 'rgba(60,141,188,1)',
-                              data                : Arrears_absent_list_staff
-                            },
-                            {
-                              label               : 'Arrears',
-                              backgroundColor     : 'rgba(210, 214, 222, 1)',
-                              borderColor         : 'rgba(210, 214, 222, 1)',
-                              pointRadius         : false,
-                              pointColor          : 'rgba(210, 214, 222, 1)',
-                              pointStrokeColor    : '#c1c7d1',
-                              pointHighlightFill  : '#fff',
-                              pointHighlightStroke: 'rgba(220,220,220,1)',
-                              data                : Arrears_present_list_staff
-                            },
-                          ]
-                        }
-                        var barChartCanvas = $('#barChart1').get(0).getContext('2d')
-                        var temp0 = barChartData.datasets[0]
-                        var temp1 = barChartData.datasets[1]
-                        barChartData.datasets[0] = temp1
-                        barChartData.datasets[1] = temp0
+              var barChart = new Chart(barChartCanvas, {
+                type: 'bar',
+                data: barChartData,
+                options: barChartOptions
+              })
 
-                        var barChartOptions = {
-                          responsive              : true,
-                          maintainAspectRatio     : false,
-                          datasetFill             : false
-                        }
+              //tenant Leaves vs Arrears
+              var barChartData2 = {
+                labels  : tenant_name_list,
+                datasets: [
+                  {
+                    label               : 'Leaves',
+                    backgroundColor     : 'rgba(60,141,188,0.9)',
+                    borderColor         : 'rgba(60,141,188,0.8)',
+                    pointRadius          : false,
+                    pointColor          : '#3b8bba',
+                    pointStrokeColor    : 'rgba(60,141,188,1)',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data                : Arrears_absent_list_tenant
+                  },
+                  {
+                    label               : 'Arrears',
+                    backgroundColor     : 'rgba(210, 214, 222, 1)',
+                    borderColor         : 'rgba(210, 214, 222, 1)',
+                    pointRadius         : false,
+                    pointColor          : 'rgba(210, 214, 222, 1)',
+                    pointStrokeColor    : '#c1c7d1',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(220,220,220,1)',
+                    data                : Arrears_present_list_tenant
+                  },
+                ]
+              }
+              var barChartCanvas2 = $('#barChart2').get(0).getContext('2d')
+              var temp02 = barChartData2.datasets[0]
+              var temp12 = barChartData2.datasets[1]
+              barChartData2.datasets[0] = temp12
+              barChartData2.datasets[1] = temp02
 
-                        var barChart = new Chart(barChartCanvas, {
-                          type: 'bar',
-                          data: barChartData,
-                          options: barChartOptions
-                        })
+              var barChartOptions2 = {
+                responsive              : true,
+                maintainAspectRatio     : false,
+                datasetFill             : false
+              }
 
-                        //tenant Leaves vs Arrears
-                        var Arrears_present_list_tenant={{ Arrears_present_list_tenant }};
-                        var Arrears_absent_list_tenant={{ Arrears_absent_list_tenant }};
-                        var tenant_name_list={{ tenant_name_list|safe }};
-                        var barChartData2 = {
-                          labels  : tenant_name_list,
-                          datasets: [
-                            {
-                              label               : 'Leaves',
-                              backgroundColor     : 'rgba(60,141,188,0.9)',
-                              borderColor         : 'rgba(60,141,188,0.8)',
-                              pointRadius          : false,
-                              pointColor          : '#3b8bba',
-                              pointStrokeColor    : 'rgba(60,141,188,1)',
-                              pointHighlightFill  : '#fff',
-                              pointHighlightStroke: 'rgba(60,141,188,1)',
-                              data                : Arrears_absent_list_tenant
-                            },
-                            {
-                              label               : 'Arrears',
-                              backgroundColor     : 'rgba(210, 214, 222, 1)',
-                              borderColor         : 'rgba(210, 214, 222, 1)',
-                              pointRadius         : false,
-                              pointColor          : 'rgba(210, 214, 222, 1)',
-                              pointStrokeColor    : '#c1c7d1',
-                              pointHighlightFill  : '#fff',
-                              pointHighlightStroke: 'rgba(220,220,220,1)',
-                              data                : Arrears_present_list_tenant
-                            },
-                          ]
-                        }
-                        var barChartCanvas2 = $('#barChart2').get(0).getContext('2d')
-                        var temp02 = barChartData2.datasets[0]
-                        var temp12 = barChartData2.datasets[1]
-                        barChartData2.datasets[0] = temp12
-                        barChartData2.datasets[1] = temp02
-
-                        var barChartOptions2 = {
-                          responsive              : true,
-                          maintainAspectRatio     : false,
-                          datasetFill             : false
-                        }
-
-                        var barChart2 = new Chart(barChartCanvas2, {
-                          type: 'bar',
-                          data: barChartData2,
-                          options: barChartOptions2
-                        })
+              var barChart2 = new Chart(barChartCanvas2, {
+                type: 'bar',
+                data: barChartData2,
+                options: barChartOptions2
+              })
 
 
 

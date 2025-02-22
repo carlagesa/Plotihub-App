@@ -23,17 +23,6 @@ def doLogin(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        captcha_token = request.POST.get("g-recaptcha-response")
-        cap_url = "https://www.google.com/recaptcha/api/siteverify"
-        cap_secret = "6LcmwBIqAAAAAEVQHP6mK-yp01mY2iy-GbuYKXEA"
-        cap_data = {"secret": cap_secret, "response": captcha_token}
-        cap_server_response = requests.post(url=cap_url, data=cap_data)
-        cap_json = json.loads(cap_server_response.text)
-
-        if not cap_json['success']:
-            messages.error(request, "Invalid Captcha Try Again")
-            return HttpResponseRedirect("/")
-
         email = request.POST.get("email")
         password = request.POST.get("password")
 
@@ -53,7 +42,7 @@ def doLogin(request):
             return HttpResponseRedirect("/")
   
 def GetUserDetails(request):
-    if request.user!=None:
+    if request.user is not None:
         return HttpResponse("User : "+request.user.email+" usertype : "+str(request.user.user_type))
     else:
         return HttpResponse("Please Login First")

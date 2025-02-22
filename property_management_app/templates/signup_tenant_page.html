@@ -80,11 +80,11 @@
           </div>
         </div>
       <div class="input-group mb-3">
-                          <select class="form-control" name="property">
-                        {% for property in properties %}
-                          <option value="{{ property.id }}">{{ property.property_name }}</option>
-                        {% endfor %}
-                    </select>
+        <select class="form-control" name="property">
+          {% for property in properties %}
+            <option value="{{ property.id }}">{{ property.property_name }}</option>
+          {% endfor %}
+      </select>
 
           <div class="input-group-append">
             <div class="input-group-text">

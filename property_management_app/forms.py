@@ -78,15 +78,15 @@ class EditResultForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.staff_id=kwargs.pop("staff_id")
         super(EditResultForm,self).__init__(*args,**kwargs)
-        subject_list=[]
+        caretaker_list=[]
         try:
             Caretakers=Caretakers.objects.filter(staff_id=self.staff_id)
-            for subject in Caretakers:
-                subject_single=(subject.id,subject.subject_name)
-                subject_list.append(subject_single)
+            for caretaker in Caretakers:
+                caretaker_single=(caretaker.id,caretaker.caretaker_name)
+                caretaker_list.append(caretaker_single)
         except:
-            subject_list=[]
-        self.fields['subject_id'].choices=subject_list
+            caretaker_list=[]
+        self.fields['caretaker_id'].choices=caretaker_list
 
     session_list=[]
     try:
@@ -97,7 +97,7 @@ class EditResultForm(forms.Form):
     except:
         session_list=[]
 
-    subject_id=forms.ChoiceField(label="Subject",widget=forms.Select(attrs={"class":"form-control"}))
+    caretaker_id=forms.ChoiceField(label="Subject",widget=forms.Select(attrs={"class":"form-control"}))
     session_ids=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))
     tenant_ids=ChoiceNoValidation(label="Tenant",widget=forms.Select(attrs={"class":"form-control"}))
     assignment_marks=forms.CharField(label="Assignment Marks",widget=forms.TextInput(attrs={"class":"form-control"}))
