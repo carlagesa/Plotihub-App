@@ -29,6 +29,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # Application definition
 
 INSTALLED_APPS = [
+    "django_adminlte3",
+    "django_adminlte3.theme",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -66,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'plotihub.wsgi.app'
+WSGI_APPLICATION = 'plotihub.wsgi.application'
 
 
 # Database

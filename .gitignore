@@ -2,3 +2,4 @@
 venv
 .env
 .env.development.local
+property_management_app/static
