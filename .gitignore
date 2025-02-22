@@ -1,2 +1,4 @@
 /.vs
 venv
+.env
+.env.development.local
