@@ -189,32 +189,31 @@ Home
 {% block custom_js %}
 <script>
     $(document).ready(function(){
-        // Parse the JSON data from Django
+        // First chart - Tenant vs Staff
         var pieData = {
-            labels: [
-                'tenants',
-                'staffs'
-            ],
-            datasets: [
-                {
-                    data: [{{ tenant_count }}, {{ staff_count }}],
-                    backgroundColor: ['#f56954', '#00a65a'],
-                }
-            ]
+            labels: ['tenants', 'staffs'],
+            datasets: [{
+                data: [{{ tenant_count }}, {{ staff_count }}],
+                backgroundColor: ['#f56954', '#00a65a']
+            }]
         };
 
-        // Parse JSON strings for other variables
-        var caretaker_count_list = JSON.parse('{{ caretaker_count_list|safe }}');
-        var property_name_list = JSON.parse('{{ property_name_list|safe }}');
-        var tenant_count_list_in_property = JSON.parse('{{ tenant_count_list_in_property|safe }}');
-        var tenant_count_list_in_caretaker = JSON.parse('{{ tenant_count_list_in_caretaker|safe }}');
-        var caretaker_list = JSON.parse('{{ caretaker_list|safe }}');
-        var Arrears_present_list_staff = JSON.parse('{{ arrears_present_list_staff|safe }}');
-        var Arrears_absent_list_staff = JSON.parse('{{ arrears_absent_list_staff|safe }}');
-        var staff_name_list = JSON.parse('{{ staff_name_list|safe }}');
-        var Arrears_present_list_tenant = JSON.parse('{{ arrears_present_list_tenant|safe }}');
-        var Arrears_absent_list_tenant = JSON.parse('{{ arrears_absent_list_tenant|safe }}');
-        var tenant_name_list = JSON.parse('{{ tenant_name_list|safe }}');
+        // Parse JSON strings for other variables - ensure proper string escaping
+        try {
+            var caretaker_count_list = JSON.parse('{{ caretaker_count_list|escapejs }}');
+            var property_name_list = JSON.parse('{{ property_name_list|escapejs }}');
+            var tenant_count_list_in_property = JSON.parse('{{ tenant_count_list_in_property|escapejs }}');
+            var tenant_count_list_in_caretaker = JSON.parse('{{ tenant_count_list_in_caretaker|escapejs }}');
+            var caretaker_list = JSON.parse('{{ caretaker_list|escapejs }}');
+            var Arrears_present_list_staff = JSON.parse('{{ arrears_present_list_staff|escapejs }}');
+            var Arrears_absent_list_staff = JSON.parse('{{ arrears_absent_list_staff|escapejs }}');
+            var staff_name_list = JSON.parse('{{ staff_name_list|escapejs }}');
+            var Arrears_present_list_tenant = JSON.parse('{{ arrears_present_list_tenant|escapejs }}');
+            var Arrears_absent_list_tenant = JSON.parse('{{ arrears_absent_list_tenant|escapejs }}');
+            var tenant_name_list = JSON.parse('{{ tenant_name_list|escapejs }}');
+        } catch (e) {
+            console.error('Error parsing JSON data:', e);
+        }
 
         var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
         var pieOptions     = {
