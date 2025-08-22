@@ -1,8 +1,10 @@
 from django.urls import path
-from api.views import (LandlordList, LandlordDetail, TenantList, TenantDetail, 
+from api.views import (LandlordList, LandlordDetail, TenantList, TenantDetail,
                         MaintenanceRequestList, MaintenanceRequestDetail,
-                        PropertyList, PropertyDetail, LeaseList, 
+                        PropertyList, PropertyDetail, LeaseList,
                         LeaseDetail, PaymentDetail, PaymentList,)
+from rest_framework.authtoken.views import obtain_auth_token
+from api.user.views import registration_view, logout_view
                         
 urlpatterns = [
     path('landlords/', LandlordList.as_view(), name='landlord-list'),
@@ -22,4 +24,8 @@ urlpatterns = [
 
     path('maintenance/', MaintenanceRequestList.as_view(), name='maintenance-list'),
     path('maintenance/<int:pk>', MaintenanceRequestDetail.as_view(), name='maintenance-detail'),
+
+    path('login/', obtain_auth_token, name='login'),
+    path('register/', registration_view, name='register'),
+    path('logout/', logout_view, name='logout'),
 ]
