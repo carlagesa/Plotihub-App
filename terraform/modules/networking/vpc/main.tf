@@ -17,3 +17,27 @@ resource "aws_vpc" "main" {
     Environment = var.environment
   }
 }
+
+# --- Subnets ---
+# We create private subnets to house our database, which should not be accessible from the internet.
+# We create them in different Availability Zones (AZs) for high availability.
+
+resource "aws_subnet" "private_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 0) # e.g., 10.0.0.0/24
+  availability_zone = "${var.aws_region}a"
+
+  tags = {
+    Name = "${var.environment}-private-subnet-a"
+  }
+}
+
+resource "aws_subnet" "private_b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 1) # e.g., 10.0.1.0/24
+  availability_zone = "${var.aws_region}b"
+
+  tags = {
+    Name = "${var.environment}-private-subnet-b"
+  }
+}
