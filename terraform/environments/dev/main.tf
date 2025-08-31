@@ -39,3 +39,43 @@ module "vpc_secondary" {
   vpc_cidr    = "10.1.0.0/16"
   environment = "dev"
 }
+
+# --- Data Layer ---
+
+# Call the secrets module to create and replicate our database password.
+# This module uses the primary provider by default.
+module "secrets" {
+  source = "../../modules/data/secrets"
+
+  environment      = "dev"
+  secondary_region = var.secondary_region
+}
+
+# Call the aurora module to deploy our multi-region database.
+# This module is special because it needs to create resources in BOTH regions.
+# We pass both provider aliases into it.
+module "aurora_global" {
+  source = "../../modules/data/aurora-global"
+
+  providers = {
+    aws.primary   = aws.primary
+    aws.secondary = aws.secondary
+  }
+
+  environment = "dev"
+
+  # Wire in the outputs from our VPC modules.
+  primary_vpc_id       = module.vpc_primary.vpc_id
+  primary_subnet_ids   = module.vpc_primary.private_subnet_ids
+  secondary_subnet_ids = module.vpc_secondary.private_subnet_ids
+
+  # Wire in the secret ARN from our secrets module.
+  db_credentials_secret_arn = module.secrets.db_credentials_secret_arn
+
+  # This explicit dependency ensures that the VPCs are fully created
+  # before the database module attempts to use them.
+  depends_on = [
+    module.vpc_primary,
+    module.vpc_secondary
+  ]
+}
