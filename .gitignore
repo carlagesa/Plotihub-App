@@ -34,3 +34,4 @@ terraform.rc
 # Editor/OS files
 .DS_Store
 Thumbs.db
+fix_modules.sh

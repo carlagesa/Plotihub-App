@@ -1,13 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-      configuration_aliases = [aws.primary, aws.secondary]
-    }
-  }
-}
-
 # We need to fetch the secret's value to get the username and password for cluster creation.
 # This data source reads the latest version of the secret we created earlier.
 data "aws_secretsmanager_secret_version" "db_creds" {
