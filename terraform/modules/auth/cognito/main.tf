@@ -12,10 +12,13 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = true
   }
 
-  # How should users sign in? Here, we allow email as a username.
-  # The 'alias_attributes' allows users to sign in with either a username or their email.
-  username_attributes = ["email"]
-  alias_attributes    = ["email", "preferred_username"]
+  # It tells Cognito to allow users to sign up and sign in using their email.
+  alias_attributes = ["email", "preferred_username"]
+
+  # ADD this block. It's a best practice for configuring the underlying username behavior.
+  username_configuration {
+    case_sensitive = false
+  }
 
   # Configure how Cognito should handle user account verification (e.g., after sign-up).
   # We will use email for this.
