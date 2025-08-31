@@ -79,3 +79,18 @@ module "aurora_global" {
     module.vpc_secondary
   ]
 }
+
+# --- Authentication Layer ---
+
+# Call the cognito module to create our user directory.
+# Since user authentication is centralized, we deploy this module
+# ONLY to our primary region by explicitly passing the 'primary' provider.
+module "cognito" {
+  source = "../../modules/auth/cognito"
+
+  providers = {
+    aws = aws.primary
+  }
+
+  environment = "dev"
+}
