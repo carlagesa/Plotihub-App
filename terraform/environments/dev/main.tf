@@ -69,8 +69,8 @@ module "aurora_global" {
   primary_subnet_ids   = module.vpc_primary.private_subnet_ids
   secondary_subnet_ids = module.vpc_secondary.private_subnet_ids
 
-  # Wire in the secret ARN from our secrets module.
-  db_credentials_secret_arn = module.secrets.db_credentials_secret_arn
+  #Pass the new output from the secrets module to the new input of the aurora_global module
+  db_credentials_map = module.secrets.db_credentials_map
 
   # This explicit dependency ensures that the VPCs are fully created
   # before the database module attempts to use them.
