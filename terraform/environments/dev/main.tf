@@ -80,6 +80,28 @@ module "aurora_global" {
   ]
 }
 
+# --- NEW: Security Groups for Primary Region ---
+module "security_groups_primary" {
+  source = "../../modules/networking/security-groups"
+  providers = {
+    aws = aws.primary
+  }
+
+  environment = "dev"
+  vpc_id      = module.vpc_primary.vpc_id
+}
+
+# --- NEW: Security Groups for Secondary Region ---
+module "security_groups_secondary" {
+  source = "../../modules/networking/security-groups"
+  providers = {
+    aws = aws.secondary
+  }
+
+  environment = "dev"
+  vpc_id      = module.vpc_secondary.vpc_id
+}
+
 # --- Authentication Layer ---
 
 # Call the cognito module to create our user directory.
