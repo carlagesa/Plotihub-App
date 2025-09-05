@@ -60,7 +60,7 @@ resource "aws_rds_cluster_instance" "primary" {
 
   cluster_identifier = aws_rds_cluster.primary.id
   identifier         = "${var.environment}-aurora-primary-instance-1"
-  instance_class     = "db.t3.medium" # Choose an instance size appropriate for your workload.
+  instance_class     = "db.r6g.large" # Choose an instance size appropriate for your workload.
   engine             = aws_rds_cluster.primary.engine
   engine_version     = aws_rds_cluster.primary.engine_version
 }
