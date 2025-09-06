@@ -80,7 +80,7 @@ module "aurora_global" {
   ]
 }
 
-# --- NEW: Security Groups for Primary Region ---
+#Security Groups for Primary Region ---
 module "security_groups_primary" {
   source = "../../modules/networking/security-groups"
   providers = {
@@ -91,7 +91,7 @@ module "security_groups_primary" {
   vpc_id      = module.vpc_primary.vpc_id
 }
 
-# --- NEW: Security Groups for Secondary Region ---
+#Security Groups for Secondary Region ---
 module "security_groups_secondary" {
   source = "../../modules/networking/security-groups"
   providers = {
@@ -100,6 +100,44 @@ module "security_groups_secondary" {
 
   environment = "dev"
   vpc_id      = module.vpc_secondary.vpc_id
+}
+
+# --- NEW: Compute Layer (Lambda Functions) ---
+
+module "lambda_primary" {
+  source = "../../modules/compute/lambda"
+  providers = {
+    aws = aws.primary
+  }
+
+  environment              = "dev"
+  function_name            = "dev-api-handler-primary"
+  rds_proxy_endpoint       = module.rds_proxy_primary.proxy_endpoint
+  vpc_id                   = module.vpc_primary.vpc_id
+  private_subnet_ids       = module.vpc_primary.private_subnet_ids
+  lambda_security_group_id = module.security_groups_primary.lambda_sg_id
+
+  depends_on = [module.rds_proxy_primary]
+  s3_code_bucket = "lambda-deploys-${var.primary_region}-626690050115"
+  s3_code_key    = "dev/api-handler-primary.zip"
+}
+
+module "lambda_secondary" {
+  source = "../../modules/compute/lambda"
+  providers = {
+    aws = aws.secondary
+  }
+
+  environment              = "dev"
+  function_name            = "dev-api-handler-secondary"
+  rds_proxy_endpoint       = module.rds_proxy_secondary.proxy_endpoint
+  vpc_id                   = module.vpc_secondary.vpc_id
+  private_subnet_ids       = module.vpc_secondary.private_subnet_ids
+  lambda_security_group_id = module.security_groups_secondary.lambda_sg_id
+
+  depends_on = [module.rds_proxy_secondary]
+  s3_code_bucket = "lambda-deploys-${var.secondary_region}-626690050115"
+  s3_code_key    = "dev/api-handler-secondary.zip"
 }
 
 # --- Authentication Layer ---
