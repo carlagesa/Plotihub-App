@@ -1,0 +1,25 @@
+name: Deploy Lambda Application Code
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # This path correctly includes our new .py file, so it's likely unchanged.
+      - 'lambda-functions/api-handler/**'
+
+jobs:
+  deploy-code:
+    # ... (no changes needed in the job setup) ...
+        
+        steps:
+          # ... (no changes needed in checkout or credentials) ...
+
+          - name: AWS Lambda Deploy
+            uses: aws-actions/aws-lambda-deploy@v1
+            with:
+              function_name: 'arn:aws:lambda:${{ matrix.region }}:<your_aws_account_id>:function:dev-api-handler-${{ matrix.region == 'us-east-1' && 'primary' || 'secondary' }}'
+              
+              # This line points to the folder containing your code. Since 'lambda_function.py'
+              # is in this folder, the path is correct and requires no change.
+              source_dir: 'lambda-functions/api-handler'
