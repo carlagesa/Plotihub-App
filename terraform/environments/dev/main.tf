@@ -83,6 +83,7 @@ module "rds_proxy_primary" {
   providers = {
     aws = aws.primary
   }
+  region = var.primary_region
   environment               = "dev"
   db_cluster_identifier     = module.aurora_global.primary_cluster_id
   db_credentials_secret_arn = module.secrets.db_credentials_secret_arn
@@ -96,6 +97,7 @@ module "rds_proxy_secondary" {
   providers = {
     aws = aws.secondary
   }
+  region = var.secondary_region
   environment               = "dev"
   db_cluster_identifier     = module.aurora_global.secondary_cluster_id
   db_credentials_secret_arn = module.secrets.db_credentials_secret_arn

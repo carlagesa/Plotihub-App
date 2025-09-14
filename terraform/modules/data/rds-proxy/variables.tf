@@ -3,6 +3,11 @@ variable "environment" {
   type        = string
 }
 
+variable "region" {
+  description = "The AWS region the proxy is deployed in, used to create unique IAM names."
+  type        = string
+}
+
 variable "db_cluster_identifier" {
   description = "The identifier of the regional Aurora DB cluster."
   type        = string

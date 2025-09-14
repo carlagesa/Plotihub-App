@@ -1,6 +1,6 @@
 # This IAM Role allows the RDS Proxy service to assume it.
 resource "aws_iam_role" "proxy_role" {
-  name = "${var.environment}-rds-proxy-role"
+  name = "${var.environment}-${var.region}-rds-proxy-role"
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
@@ -16,7 +16,7 @@ resource "aws_iam_role" "proxy_role" {
 
 # This policy allows the role to fetch the database password from Secrets Manager.
 resource "aws_iam_policy" "proxy_policy" {
-  name = "${var.environment}-rds-proxy-policy"
+  name = "${var.environment}-${var.region}-rds-proxy-policy"
 
   policy = jsonencode({
     Version   = "2012-10-17",
