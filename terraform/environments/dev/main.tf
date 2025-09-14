@@ -1,3 +1,7 @@
+provider "aws" {
+  region = var.primary_region
+}
+
 # --- Provider Configuration ---
 provider "aws" {
   region = var.primary_region
@@ -51,9 +55,7 @@ module "security_groups_secondary" {
 # --- Data Layer ---
 module "secrets" {
   source = "../../modules/data/secrets"
-  providers = {
-    aws = aws.primary
-  }
+  # No 'providers' block needed - it will automatically use the default provider, which is set to our primary region.
   environment      = "dev"
   secondary_region = var.secondary_region
 }
@@ -141,4 +143,31 @@ module "cognito" {
     aws = aws.primary
   }
   environment = "dev"
+}
+
+# --- API Layer ---
+
+module "api_gateway_primary" {
+  source = "../../modules/api/api-gateway"
+  providers = {
+    aws = aws.primary
+  }
+
+  environment                = "dev"
+  api_name                   = "dev-serverless-api-primary"
+  lambda_function_invoke_arn = module.lambda_primary.function_invoke_arn
+  cognito_user_pool_arn      = module.cognito.user_pool_arn
+}
+
+module "api_gateway_secondary" {
+  source = "../../modules/api/api-gateway"
+  providers = {
+    aws = aws.secondary
+  }
+
+  environment                = "dev"
+  api_name                   = "dev-serverless-api-secondary"
+  lambda_function_invoke_arn = module.lambda_secondary.function_invoke_arn
+  # We point the secondary API Gateway back to the single, centralized Cognito User Pool in the primary region.
+  cognito_user_pool_arn      = module.cognito.user_pool_arn
 }
