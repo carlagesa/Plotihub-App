@@ -1,88 +1,107 @@
-# We need to fetch the secret's value to get the username and password for cluster creation.
-# This data source reads the latest version of the secret we created earlier.
-data "aws_secretsmanager_secret_version" "db_creds" {
-  secret_id = var.db_credentials_secret_arn
-}
-
-# Find the default AWS-managed KMS key for RDS in the secondary region.
-# This is required for creating an encrypted cross-region replica.
-data "aws_kms_alias" "rds_secondary" {
-  # We must use the 'secondary' provider to ensure we look up the key in the correct region.
-  provider = aws.secondary
-  name     = "alias/aws/rds"
-}
-
-# The secret value is a JSON string, so we use the 'jsondecode' function to parse it into a Terraform object.
-locals {
-  db_creds = jsondecode(data.aws_secretsmanager_secret_version.db_creds.secret_string)
-}
+# This module provisions a complete, multi-region AWS Aurora Global Database.
+# It is designed to be called from a root module and requires provider aliases
+# ('aws.primary' and 'aws.secondary') to be passed to it.
 
 # --- Global Cluster Resource ---
-# This is the top-level container for our multi-region database.
+
+# This resource defines the top-level container for our multi-region database.
+# It doesn't contain any data itself but manages the replication and failover
+# characteristics between the regional clusters.
 resource "aws_rds_global_cluster" "main" {
+  # A unique identifier for the global cluster across all of AWS.
   global_cluster_identifier = "${var.environment}-aurora-global-db"
-  engine                    = "aurora-mysql"
-  engine_version            = "8.0.mysql_aurora.3.06.0" # Use a current, valid version
-  storage_encrypted         = true
+
+  # Specifies the database engine and version. All regional clusters
+  # within this global cluster must use the same engine and version.
+  engine         = "aurora-mysql"
+  engine_version = "8.0.mysql_aurora.3.06.0"
+
+  # Ensures the database storage is encrypted at rest, a security best practice.
+  storage_encrypted = true
 }
 
 # --- Primary Region Resources ---
+# These resources will be created in the region associated with the 'aws.primary' provider alias.
 
-# A DB subnet group tells RDS which subnets it can place database instances in.
+# A DB Subnet Group tells RDS which subnets within a VPC it can place database instances into.
+# This is required for creating a cluster in a VPC.
 resource "aws_db_subnet_group" "primary" {
   name       = "${var.environment}-primary-db-subnet-group"
   subnet_ids = var.primary_subnet_ids
 }
 
-# The primary database cluster. This is the writable master.
+# This is the primary database cluster. It is the main writable master.
 resource "aws_rds_cluster" "primary" {
-  # This provider alias ensures these resources are created in us-east-1.
+  # This meta-argument explicitly tells Terraform to use the 'primary' provider
+  # alias, ensuring this cluster is created in the correct region (e.g., us-east-1).
   provider = aws.primary
 
-  cluster_identifier      = "${var.environment}-aurora-primary-cluster"
+  # Links this regional cluster to the global cluster defined above.
   global_cluster_identifier = aws_rds_global_cluster.main.id
-  engine                  = aws_rds_global_cluster.main.engine
-  engine_version          = aws_rds_global_cluster.main.engine_version
-  db_subnet_group_name    = aws_db_subnet_group.primary.name
-  master_username         = local.db_creds.username
-  master_password         = local.db_creds.password
-  skip_final_snapshot     = true # Set to false for production environments
+  cluster_identifier        = "${var.environment}-aurora-primary-cluster"
+  engine                    = aws_rds_global_cluster.main.engine
+  engine_version            = aws_rds_global_cluster.main.engine_version
+  db_subnet_group_name      = aws_db_subnet_group.primary.name
+
+  # --- IMPORTANT ---
+  # The master credentials are now passed directly into this module via the
+  # 'db_credentials_map' variable. This creates a clear dependency graph and avoids
+  # the race condition that occurred when using a 'data' source to look up the secret.
+  master_username = var.db_credentials_map["username"]
+  master_password = var.db_credentials_map["password"]
+
+  # For production, this should be set to 'false' to ensure a final backup is taken on deletion.
+  skip_final_snapshot = true
 }
 
-# At least one database instance is required in the primary cluster.
+# A cluster needs at least one database instance (a virtual server) to run on.
 resource "aws_rds_cluster_instance" "primary" {
   provider = aws.primary
 
   cluster_identifier = aws_rds_cluster.primary.id
   identifier         = "${var.environment}-aurora-primary-instance-1"
-  instance_class     = "db.r5.large" # Choose an appropriate instance size, Global databases require more powerful instance classes.
+  instance_class     = "db.r6g.large" # Choose an instance size appropriate for your workload.
   engine             = aws_rds_cluster.primary.engine
   engine_version     = aws_rds_cluster.primary.engine_version
 }
 
 # --- Secondary Region Resources ---
+# These resources will be created in the region associated with the 'aws.secondary' provider alias.
 
+# A data source to look up the default AWS-managed KMS key for RDS in the secondary region.
+# KMS keys are regional, so we must explicitly find the key in the target region
+# to encrypt our cross-region replica.
+data "aws_kms_alias" "rds_secondary" {
+  provider = aws.secondary
+  name     = "alias/aws/rds"
+}
+
+# A separate DB Subnet Group for the secondary region, using subnets from the secondary VPC.
 resource "aws_db_subnet_group" "secondary" {
-  provider = aws.secondary # This ensures the resource is created in the secondary region.
+  provider = aws.secondary
+
   name       = "${var.environment}-secondary-db-subnet-group"
   subnet_ids = var.secondary_subnet_ids
 }
 
-# The secondary database cluster. This is a read-only replica.
+# This is the secondary database cluster. It is a read-only replica of the primary.
 resource "aws_rds_cluster" "secondary" {
-  # This provider alias ensures these resources are created in us-east-2.
+  # Explicitly use the 'secondary' provider to create this in our failover region.
   provider = aws.secondary
 
-  cluster_identifier      = "${var.environment}-aurora-secondary-cluster"
+  # Links this cluster to the same global cluster, making it a replica.
   global_cluster_identifier = aws_rds_global_cluster.main.id
-  engine                  = aws_rds_global_cluster.main.engine
-  engine_version          = aws_rds_global_cluster.main.engine_version
-  db_subnet_group_name    = aws_db_subnet_group.secondary.name
-  skip_final_snapshot     = true
+  cluster_identifier        = "${var.environment}-aurora-secondary-cluster"
+  engine                    = aws_rds_global_cluster.main.engine
+  engine_version            = aws_rds_global_cluster.main.engine_version
+  db_subnet_group_name      = aws_db_subnet_group.secondary.name
+  skip_final_snapshot       = true
 
- # Explicitly provide the KMS key ARN for the secondary region.
+  # Provides the ARN of the KMS key from the secondary region to encrypt this replica's storage.
+  # This is mandatory for encrypted global databases.
   kms_key_id = data.aws_kms_alias.rds_secondary.target_key_arn
 
-  # This dependency ensures the primary cluster is fully created before the secondary one starts.
+  # This explicit dependency tells Terraform to wait until the primary cluster is
+  # fully created before attempting to create the secondary replica.
   depends_on = [aws_rds_cluster.primary]
 }

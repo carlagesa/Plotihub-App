@@ -18,7 +18,9 @@ variable "secondary_subnet_ids" {
   type        = list(string)
 }
 
-variable "db_credentials_secret_arn" {
-  description = "The ARN of the secret containing the master DB credentials."
-  type        = string
+variable "db_credentials_map" {
+  description = "A map containing the database username and password."
+  type = map(string)
+  # Mark the input variable as sensitive.
+  sensitive = true
 }
