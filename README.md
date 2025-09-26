@@ -1,6 +1,6 @@
 # Multi-Region Serverless Platform for Property Management (🚧In Progress🚧)
 
-[]() <img src="./aws_arch.png" alt="app-screen" width="800" />
+[]() <img src="./Plotihub.svg" alt="Plotihub archicture" width="800"/>
 
 ## 1. Executive Summary
 
