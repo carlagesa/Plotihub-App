@@ -1,218 +1,242 @@
-# Multi-Region Serverless Platform for Property Management (🚧In Progress🚧)
+# Plotihub - Property Management API
 
-[]() <img src="./Plotihub.svg" alt="Plotihub archicture" width="800"/>
+![Django](https://img.shields.io/badge/Django-4.2-green)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![AWS](https://img.shields.io/badge/AWS-Elastic%20Beanstalk-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## 1. Executive Summary
+Plotihub is a property management API built with Django and Django REST Framework, designed specifically for the Kenyan property market. It helps property owners automate rent collection, maintenance logging, and tenant management.
 
-This repository contains the Infrastructure as Code (IaC) for a production-grade, multi-region serverless platform built on AWS. The platform is designed to power an open-source Property Management API for the Kenyan market, a sector where digital transformation can significantly reduce operational friction for property owners.
+## 📋 Table of Contents
 
-The architecture documented here is a blueprint for building modern, cloud-native applications that are **secure, resilient, scalable, and cost-effective by design.**
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+- [Project Structure](#project-structure)
+- [API Endpoints](#api-endpoints)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 2. The Business Problem & The Cloud Solution
+## ✨ Features
 
-**Problem:** Independent property owners in Kenya face significant administrative overhead, relying on manual processes for rent collection, maintenance logging, and financial reconciliation. This leads to payment delays, poor tenant service, and a lack of data for business decisions.
+- **Landlord Management** - Manage multiple property owners
+- **Property Management** - Track properties with multiple units
+- **Tenant Management** - Handle tenant information and leases
+- **Payment Tracking** - Record and track rent payments
+- **Maintenance Requests** - Log and manage maintenance issues
+- **RESTful API** - Full Django REST Framework support
+- **API Documentation** - Interactive Swagger/OpenAPI documentation
 
-**Solution:** A centralized, reliable, and low-cost API that automates these core workflows. We chose a multi-region, serverless architecture on AWS to directly address the key business requirements:
+## 🏗️ Architecture
 
-*   **Extreme Reliability:** The service must be available 24/7, especially during critical end-of-month payment periods.
-*   **Low Operational Cost:** The business model requires a low barrier to entry and operating costs that scale linearly with adoption.
-*   **Rapid Feature Development:** The ability to quickly introduce new features (e.g., SMS notifications, online payments) is a key competitive advantage.
+```
+                          Internet
+                             |
+                        [Route 53]
+                             |
+                    [Application Load Balancer]
+                             |
+                    [Elastic Beanstalk]
+                     (Auto-scaling 1-4)
+                             |
+              +--------------+--------------+
+              |              |              |
+         [RDS MySQL]    [S3 Storage]  [Cognito]
+        (Multi-AZ)      (Documents)   (Auth)
+```
 
-## 3. Key Features
+### Key Architecture Decisions
 
-*   **High Availability:** Multi-region active-active deployment across two AWS regions with Route 53 DNS Failover and a continuously replicated Aurora MySQL Global Database to withstand regional failures with zero data loss and near-zero downtime.
-*   **Scalability:** Automated scaling of compute resources through AWS Lambda and API Gateway, handling massive, spiky traffic patterns without performance degradation. An RDS Proxy manages database connections for graceful scaling.
-*   **Resilience:** Self-healing mechanisms inherent in serverless components and Aurora Global Database failover to standby replicas ensure continuous operation.
-*   **Cost Optimization:** Implemented strategies to minimize cloud expenditure without compromising performance or reliability, leveraging a serverless, pay-per-request model and Infrastructure as Code for efficient resource management.
-*   **Security:** Adherence to security best practices, including network isolation within VPCs, least privilege access via IAM, data encryption at rest and in transit, and secrets management with AWS Secrets Manager. Amazon Cognito provides secure user identity.
-*   **Infrastructure as Code (IaC):** All infrastructure defined and managed using Terraform.
-*   **CI/CD Pipeline:** Automated deployment of application code and infrastructure changes using GitHub Actions.
+- **Compute**: AWS Elastic Beanstalk with Python 3.11
+- **Database**: RDS MySQL with Multi-AZ deployment
+- **Storage**: S3 for document storage
+- **Authentication**: Amazon Cognito for user management
+- **CI/CD**: GitHub Actions automated deployments
+- **Region**: `af-south-1` (Cape Town) - optimized for Kenya
 
-## 4. Technologies Used
+### Scaling Strategy
 
-*   **Cloud Provider:** AWS
-*   **Infrastructure as Code:** Terraform
-*   **Programming Language (for application):** Python (Django, Django REST Framework)
-*   **Database:** Aurora MySQL Global Database
-*   **CI/CD:** GitHub Actions
-*   **Monitoring & Logging:** AWS CloudWatch, AWS CloudTrail
-*   **Version Control:** Git
+- **Normal Operation**: 1 t3.micro instance (~8/month)
+- **Peak (End-of-Month)**: Up to 4 instances handle traffic spikes
+- **Auto-scaling Trigger**: CPU 30%-80%
 
-## 5. Deployment
+### Cost Estimate (Development)
 
-The entire infrastructure is deployed using Infrastructure as Code.
+| Service | Monthly Cost |
+|---------|-------------|
+| EC2 (EB) | $8.00 |
+| RDS MySQL (Multi-AZ) | $24.00 |
+| S3 Storage | $1.50 |
+| NAT Gateway | $32.00 |
+| ALB | $16.00 |
+| **Total** | **~$81.50/month** |
 
-**Prerequisites:**
+## 🛠️ Tech Stack
 
-*   Terraform CLI installed.
-*   AWS CLI configured (e.g., `aws configure`).
-*   Necessary IAM permissions.
+- **Backend**: Django 4.2, Django REST Framework
+- **Database**: MySQL 8.0 (RDS)
+- **Cloud**: AWS (Elastic Beanstalk, RDS, S3, Cognito)
+- **IaC**: Terraform
+- **CI/CD**: GitHub Actions
+- **Authentication**: JWT via Amazon Cognito
 
-**Steps:**
+## 🚀 Getting Started
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/carlagesa/Plotihub-App.git
-    cd Plotihub-App
-    ```
-2.  **Initialize IaC:**
-    ```bash
-    # For Terraform:
-    cd terraform
-    terraform init
-    ```
-3.  **Review the plan:**
-    ```bash
-    # For Terraform:
-    terraform plan
-    ```
-4.  **Apply the changes:**
-    ```bash
-    # For Terraform:
-    terraform apply
-    ```
-    Confirm with `yes` when prompted.
+### Prerequisites
 
-**CI/CD Pipeline (Conceptual):**
+- Python 3.11+
+- pip
+- MySQL client (for local development)
+- AWS CLI (for deployment)
 
-A GitHub Actions pipeline is configured to automatically:
+### Local Development Setup
 
-*   Trigger on push to `main` branch.
-*   Run `terraform plan` and wait for manual approval (for infrastructure changes).
-*   Execute `terraform apply`.
-*   Deploy new application versions to AWS Lambda/API Gateway.
+1. **Clone the repository:**
+```bash
+git clone https://github.com/carlagesa/Plotihub-App.git
+cd Plotihub-App
+```
 
-## 6. Cost Analysis & Optimization
+2. **Create and activate virtual environment:**
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+```
 
-Cost management was a critical aspect of this project. The following strategies were employed to ensure efficient use of resources and minimize operational expenditure:
+3. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
 
-*   **Right-Sizing:** Continuously monitored resource utilization of database instances to select appropriate instance types.
-*   **Auto Scaling:** Dynamically adjusted compute capacity based on actual demand through serverless AWS Lambda, ensuring resources are scaled down during off-peak hours and scaled up only when needed, preventing over-provisioning.
-*   **Serverless Adoption:** Leveraged serverless functions (AWS Lambda) for event-driven tasks and APIs, paying only for compute duration and invocations, eliminating idle costs.
-*   **Storage Tiering:** Utilized different storage classes for S3 (e.g., S3 Standard-IA, Glacier) based on data access patterns and retention policies for cost-effective data archival (conceptual, as S3 is not explicitly in current architecture but good practice).
-*   **Managed Services:** Opted for managed services (Aurora MySQL, API Gateway, RDS Proxy, Lambda) to offload operational overhead and reduce costs associated with OS patching, backups, and high availability setup.
-*   **Reserved Instances/Savings Plans (Future/Consideration):** While not implemented in a personal project, for production environments, analyzing historical usage to purchase Reserved Instances or Savings Plans would provide significant discounts for predictable workloads.
-*   **Tagging and Cost Allocation:** Implemented a tagging strategy (e.g., Project, Environment, Owner) to track resource usage and allocate costs effectively, enabling better visibility and accountability.
-*   **Deletion of Unused Resources:** Automated cleanup of stale or unused resources (e.g., old snapshots, untagged volumes) to prevent accrual of unnecessary costs (conceptual, as specific automation not detailed).
+4. **Configure environment variables:**
+Create a `.env` file in the project root:
+```env
+DATABASE_URL=mysql://user:password@localhost:3306/plotihub
+SECRET_KEY=your-django-secret-key
+DEBUG=True
+```
 
-**Example Cost Breakdown (Hypothetical for a small deployment):**
+5. **Run database migrations:**
+```bash
+python manage.py migrate
+```
 
-| Service             | Monthly Cost (Approx.) | Optimization Strategy Applied                               |
-| :------------------ | :--------------------- | :---------------------------------------------------------- |
-| AWS Lambda/API Gateway | $10                    | Serverless Adoption, Auto Scaling                           |
-| Aurora MySQL Global DB | $100                   | Right-Sizing, Managed Service, Multi-Region for HA (not solely cost) |
-| RDS Proxy           | $15                    | Managed Service                                             |
-| Route 53            | $2                     | Necessary for HA                                            |
-| AWS Secrets Manager | $1                     | Managed Service                                             |
-| Amazon Cognito      | $5                     | Managed Service                                             |
-| Data Transfer       | $5                     | Monitored, minimized cross-AZ where possible                |
-| **Total Est. Monthly** | **$138**               |                                                             |
+6. **Create superuser (optional):**
+```bash
+python manage.py createsuperuser
+```
 
-*Note: These are illustrative figures. Actual costs would depend on usage, region, and specific configurations.*
+7. **Start development server:**
+```bash
+python manage.py runserver
+```
 
-## 7. Security Considerations
+The API will be available at `http://127.0.0.1:8000/`
 
-Security was paramount throughout the design and implementation.
+### Running Tests
 
-*   **Network Isolation:**
-    *   Resources deployed in a Virtual Private Cloud (VPC) with private subnets for application servers (Lambda VPC access) and databases.
-    *   Public subnets only host public-facing components like API Gateway endpoints (implicitly managed by AWS).
-    *   NAT Gateways enable private instances/Lambda functions to access the internet securely without public IPs.
-*   **Least Privilege Access (IAM/RBAC):**
-    *   Strict IAM policies applied to Lambda execution roles and other services, granting only the necessary permissions to perform their functions.
-    *   Avoided root user for daily operations.
-    *   Used instance profiles/managed identities for services to access other cloud resources.
-*   **Security Groups/Network Security Groups (NSGs):**
-    *   Configured with minimal inbound rules, allowing traffic only on required ports from trusted sources (e.g., Lambda to RDS Proxy on database port).
-*   **Data Encryption:**
-    *   **At Rest:** All data stored in Aurora MySQL Global Database is encrypted using AWS-managed keys (KMS).
-    *   **In Transit:** All communication between components (e.g., API Gateway to Lambda, Lambda to RDS Proxy, RDS Proxy to database) is encrypted using SSL/TLS.
-*   **Secrets Management:**
-    *   Sensitive credentials (e.g., database passwords, API keys) are stored and retrieved using AWS Secrets Manager rather than hardcoding.
-*   **Web Application Firewall (WAF) (Optional/Future):**
-    *   Could be integrated with API Gateway to protect against common web exploits (e.g., SQL injection, XSS) by filtering malicious traffic before it reaches the application.
-*   **Vulnerability Scanning:**
-    *   Regularly scanned Lambda function code and dependencies for known vulnerabilities (conceptual, as specific tools not detailed).
-*   **Auditing:**
-    *   AWS CloudTrail is enabled to record API calls and resource changes, providing an audit trail for security analysis.
+```bash
+python manage.py test
+```
 
-## 8. Monitoring & Logging
+### API Documentation
 
-Comprehensive monitoring and logging are essential for operational visibility, troubleshooting, and proactive issue detection.
+Once the server is running, access:
+- Swagger UI: `http://127.0.0.1:8000/swagger/`
+- ReDoc: `http://127.0.0.1:8000/redoc/`
 
-*   **Centralized Logging:**
-    *   Application logs from AWS Lambda are streamed to AWS CloudWatch Logs.
-    *   Infrastructure logs (AWS CloudTrail, VPC Flow Logs) are also collected and analyzed.
-    *   Log retention policies configured for compliance and historical analysis.
-*   **Performance Metrics:**
-    *   AWS CloudWatch collects metrics for Lambda invocations, errors, duration, API Gateway latency, database connections, CPU utilization, etc.
-    *   Custom metrics can be pushed for application-specific insights.
-*   **Alerting:**
-    *   Alarms configured based on critical metrics (e.g., high Lambda error rates, high database CPU utilization, API Gateway 5xx errors).
-    *   Notifications sent via [SNS/PagerDuty/Slack/Email] to relevant teams.
-*   **Dashboards:**
-    *   Custom dashboards created in AWS CloudWatch to visualize key performance indicators (KPIs) and system health at a glance.
+## 📦 Deployment
 
-## 9. Future Enhancements
+### Automatic Deployment (GitHub Actions)
 
-*   **CI/CD Pipeline Expansion:** Implement blue/green deployments or canary releases for zero-downtime application updates.
-*   **CDN Integration:** Use Amazon CloudFront for static assets (if a frontend is added) to improve global performance and reduce load on application servers.
-*   **Serverless Refactoring:** Identify additional components suitable for serverless functions to further reduce operational overhead and cost.
-*   **Chaos Engineering:** Introduce controlled failures to test system resilience and identify weak points.
-*   **Cost Optimization Automation:** Implement automated scripts or policies to identify and clean up unused resources.
-*   **Disaster Recovery:** Further enhance disaster recovery strategies, potentially exploring multi-region active-active for all components if not already fully implemented.
+The project uses GitHub Actions for automated deployment:
 
-## 10. Local Development & Testing
+1. **Push to main branch** - Triggers application deployment
+2. **Include `[terraform]` in commit** - Triggers infrastructure deployment
+3. **Manual trigger** - Use workflow_dispatch for full deployment
 
-Instructions for setting up the project locally for development and testing.
+### Manual Deployment
 
 **Prerequisites:**
-
-*   Python 3.x
-*   `pip` (Python package installer)
-*   `virtualenv` (recommended)
-*   MySQL client libraries (if connecting directly to a local MySQL instance for development)
+- AWS CLI configured
+- EB CLI installed: `pip install awsebcli`
 
 **Steps:**
+```bash
+# Initialize EB (first time only)
+eb init -p python3.11 plotihub --region af-south-1
 
-1.  **Create and activate a virtual environment:**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Configure environment variables:**
-    Create a `.env` file in the `core/` directory for local database connection details and any necessary API keys.
-    Example `.env` content:
-    ```
-    DATABASE_URL=mysql://user:password@host:port/database_name
-    SECRET_KEY=your_django_secret_key
-    ```
-4.  **Run database migrations:**
-    ```bash
-    python manage.py migrate
-    ```
-5.  **Create a superuser (optional):**
-    ```bash
-    python manage.py createsuperuser
-    ```
-6.  **Run tests:**
-    ```bash
-    python manage.py test
-    ```
-7.  **Start application:**
-    ```bash
-    python manage.py runserver
-    ```
-    The API will be available at `http://127.0.0.1:8000/`.
+# Create environment
+eb create dev-plotihub --single --region af-south-1
 
-## 11. Contributing
+# Deploy updates
+eb deploy
+```
 
-This is a personal project, but suggestions and feedback are welcome.
+### Terraform Deployment
 
-## 12. License
+```bash
+cd terraform/environments/dev
+terraform init
+terraform plan
+terraform apply
+```
 
-This project is licensed under the MIT License.
+## 📂 Project Structure
+
+```
+Plotihub-App/
+├── api/                      # Django app
+│   ├── admin.py             # Admin configuration
+│   ├── models.py            # Database models
+│   ├── serializers.py       # DRF serializers
+│   ├── urls.py              # URL routing
+│   ├── views.py             # API views
+│   └── user/                # User app
+├── core/                    # Django project settings
+│   ├── settings.py          # Main settings
+│   ├── urls.py              # Root URLs
+│   └── wsgi.py              # WSGI config
+├── terraform/               # Infrastructure as Code
+│   ├── environments/        # Environment configs
+│   │   └── dev/            # Development environment
+│   └── modules/            # Reusable modules
+│       ├── auth/cognito/   # Cognito setup
+│       ├── compute/eb/     # Elastic Beanstalk
+│       ├── data/           # RDS & Secrets
+│       ├── networking/     # VPC & Security Groups
+│       └── storage/        # S3 buckets
+├── .github/workflows/       # CI/CD pipelines
+├── manage.py               # Django management script
+└── requirements.txt        # Python dependencies
+```
+
+## 🔌 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/landlords/` | GET, POST | List/Create landlords |
+| `/api/landlords/{id}/` | GET, PUT, DELETE | Manage landlord |
+| `/api/properties/` | GET, POST | List/Create properties |
+| `/api/properties/{id}/` | GET, PUT, DELETE | Manage property |
+| `/api/tenants/` | GET, POST | List/Create tenants |
+| `/api/tenants/{id}/` | GET, PUT, DELETE | Manage tenant |
+| `/api/leases/` | GET, POST | List/Create leases |
+| `/api/payments/` | GET, POST | List/Create payments |
+| `/api/maintenance/` | GET, POST | List/Create maintenance requests |
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+Built with ❤️ for the Kenyan property market

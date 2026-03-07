@@ -1,112 +1,280 @@
 # Terraform Infrastructure
 
-This directory contains the Terraform configurations for deploying the Multi-Region Serverless Platform for Property Management on AWS. It is structured into environments and reusable modules to promote consistency, scalability, and maintainability.
+This directory contains the Terraform configurations for deploying the Plotihub Property Management API on AWS. The infrastructure is structured into environments and reusable modules for consistency, scalability, and maintainability.
 
-## 1. Architecture Overview
+## 📋 Table of Contents
 
-The Terraform configurations define the entire cloud infrastructure, including networking, compute, data services, and security components. Key architectural principles applied here include:
+- [Architecture Overview](#architecture-overview)
+- [Directory Structure](#directory-structure)
+- [Environments](#environments)
+- [Modules](#modules)
+- [Prerequisites](#prerequisites)
+- [Deployment](#deployment)
+- [Cost Estimates](#cost-estimates)
+- [Security](#security)
 
-*   **Infrastructure as Code (IaC):** All resources are defined and managed through Terraform, enabling version control, automation, and reproducibility.
-*   **Modularity:** The infrastructure is broken down into reusable modules, each encapsulating a specific set of resources (e.g., VPC, API Gateway, Aurora).
-*   **Environment-Specific Deployments:** Separate configurations for different environments (e.g., `dev`) ensure isolation and tailored deployments.
-*   **Multi-Region Design:** Configurations support deploying an active-active architecture across multiple AWS regions for high availability and disaster recovery.
+## 🏗️ Architecture Overview
 
-## 2. Environments
+The Terraform configurations define a complete AWS infrastructure including:
 
-Each environment directory contains the specific configuration for deploying the platform to a particular stage (e.g., development, staging, production).
+- **Networking**: VPC with public and private subnets
+- **Compute**: Elastic Beanstalk with auto-scaling
+- **Database**: RDS MySQL with Multi-AZ
+- **Storage**: S3 buckets for documents and deployments
+- **Authentication**: Amazon Cognito
+- **Security**: IAM roles, security groups, secrets management
 
-*   **`environments/dev/`**:
-    *   This directory holds the Terraform configuration for the development environment.
-    *   It orchestrates the deployment of various modules to create a fully functional development instance of the platform.
-    *   Key files:
-        *   [`main.tf`](terraform/environments/dev/main.tf): Main configuration file, orchestrating module calls.
-        *   [`variables.tf`](terraform/environments/dev/variables.tf): Defines input variables specific to the `dev` environment.
-        *   [`backend.tf`](terraform/environments/dev/backend.tf): Configures the Terraform backend (e.g., S3 for state management).
-        *   [`versions.tf`](terraform/environments/dev/versions.tf): Specifies required Terraform and provider versions.
+### Key Design Principles
 
-## 3. Modules
+- **Infrastructure as Code (IaC)**: All resources defined and managed through Terraform
+- **Modularity**: Reusable modules for each component
+- **Environment Isolation**: Separate configurations per environment
+- **Cost Optimization**: Right-sized resources with auto-scaling
 
-The `modules/` directory contains reusable Terraform modules. Each module is a self-contained package of Terraform configurations that manages a specific component or set of components.
+## 📂 Directory Structure
 
-*   **`modules/api/api-gateway/`**:
-    *   Manages the AWS API Gateway resources, including REST APIs, methods, integrations (e.g., with Lambda), and deployment stages.
-    *   Provides the public-facing endpoint for the application's API.
-*   **`modules/auth/cognito/`**:
-    *   Configures AWS Cognito User Pools and Identity Pools for user authentication and authorization.
-    *   Handles user registration, login, and token management.
-*   **`modules/compute/lambda/`**:
-    *   Defines AWS Lambda functions, their execution roles (IAM), and associated permissions.
-    *   Used for deploying the serverless API handlers and other event-driven compute tasks.
-*   **`modules/data/aurora-global/`**:
-    *   Sets up an AWS Aurora MySQL Global Database, including primary and secondary clusters in different regions.
-    *   Ensures high availability, disaster recovery, and read replica capabilities.
-*   **`modules/data/rds-proxy/`**:
-    *   Deploys an AWS RDS Proxy to manage and pool database connections for Aurora.
-    *   Improves application scalability and resilience by handling connection spikes and database failovers transparently.
-*   **`modules/data/secrets/`**:
-    *   Manages AWS Secrets Manager secrets for storing sensitive information like database credentials and API keys.
-    *   Ensures secure storage and retrieval of application secrets.
-*   **`modules/networking/security-groups/`**:
-    *   Defines AWS Security Groups to control inbound and outbound traffic for various resources.
-    *   Enforces network isolation and least privilege access.
-*   **`modules/networking/vpc/`**:
-    *   Configures the AWS Virtual Private Cloud (VPC), including subnets (public, private), route tables, internet gateways, and NAT gateways.
-    *   Provides the foundational network infrastructure for all deployed resources.
+```
+terraform/
+├── environments/
+│   └── dev/                    # Development environment
+│       ├── main.tf             # Main configuration
+│       ├── variables.tf        # Input variables
+│       ├── backend.tf          # Terraform backend
+│       └── versions.tf         # Version constraints
+├── modules/                    # Reusable modules
+│   ├── auth/
+│   │   └── cognito/           # Cognito User Pools
+│   ├── compute/
+│   │   └── elastic-beanstalk/ # EB Application & Environment
+│   ├── data/
+│   │   ├── rds-mysql/         # RDS MySQL Database
+│   │   └── secrets/           # Secrets Manager
+│   ├── networking/
+│   │   ├── security-groups/   # Security Groups
+│   │   └── vpc/               # VPC Configuration
+│   └── storage/
+│       └── s3-documents/       # S3 Buckets
+└── README.md                   # This file
+```
 
-## 4. Lambda Functions
+## 🌍 Environments
 
-The `lambda-functions/` directory contains the source code for AWS Lambda functions deployed by the Terraform configurations.
+### Development (`environments/dev/`)
 
-*   **`lambda-functions/api-handler/`**:
-    *   Contains the Python code for the primary API handler Lambda function.
-    *   This function processes requests routed from API Gateway and interacts with the backend services.
-    *   Key file: [`lambda_function.py`](terraform/lambda-functions/api-handler/lambda_function.py)
+The development environment configuration deploys:
 
-## 5. Deployment
+- Single VPC with public and private subnets
+- RDS MySQL database (db.t3.micro)
+- Elastic Beanstalk application (t3.micro, 1-4 instances)
+- S3 buckets for documents and deployments
+- Cognito User Pool for authentication
+- Security groups for ALB, EB, and RDS
 
-To deploy the infrastructure for a specific environment:
+**Key files:**
+- [`main.tf`](environments/dev/main.tf) - Main configuration
+- [`variables.tf`](environments/dev/variables.tf) - Environment variables
+- [`backend.tf`](environments/dev/backend.tf) - Backend configuration
 
-**Prerequisites:**
+## 🧩 Modules
 
-*   Terraform CLI installed (ensure version compatibility as specified in `versions.tf`).
-*   AWS CLI configured with appropriate credentials and default region.
-*   Necessary IAM permissions to create and manage AWS resources.
+### Networking Modules
 
-**Steps:**
+#### VPC (`modules/networking/vpc/`)
+- Creates VPC with CIDR 10.0.0.0/16
+- Public and private subnets across availability zones
+- Internet Gateway and NAT Gateway
+- Route tables for public and private subnets
 
-1.  **Navigate to the desired environment directory:**
-    ```bash
-    cd terraform/environments/dev # or your target environment
-    ```
-2.  **Initialize Terraform:**
-    This command downloads necessary providers and modules, and sets up the backend for state management.
-    ```bash
-    terraform init
-    ```
-3.  **Review the execution plan:**
-    This command shows what actions Terraform will take without actually making any changes. Review it carefully.
-    ```bash
-    terraform plan
-    ```
-4.  **Apply the changes:**
-    This command applies the planned changes to your AWS account. You will be prompted to confirm.
-    ```bash
-    terraform apply
-    ```
-    Type `yes` and press Enter when prompted to confirm the deployment.
+#### Security Groups (`modules/networking/security-groups/`)
+- ALB security group (HTTP/HTTPS)
+- EB security group (HTTP from ALB)
+- RDS security group (MySQL from EB)
 
-## 6. CI/CD Integration
+### Compute Modules
 
-The deployment of this Terraform infrastructure is integrated with a CI/CD pipeline (e.g., GitHub Actions). The pipeline typically automates the `terraform plan` and `terraform apply` steps, often including manual approval gates for critical infrastructure changes.
+#### Elastic Beanstalk (`modules/compute/elastic-beanstalk/`)
+- EB Application and Environment
+- Python 3.11 platform on Amazon Linux 2023
+- Auto-scaling configuration (1-4 instances)
+- IAM roles for EC2 and EB service
+- Environment variables for database connection
 
-## 7. Contributing
+### Data Modules
 
-For contributions or modifications to the Terraform configurations:
+#### RDS MySQL (`modules/data/rds-mysql/`)
+- MySQL 8.0 database
+- Multi-AZ deployment for high availability
+- Automated backups (7-day retention)
+- Encryption at rest
 
-*   Follow the existing module structure and naming conventions.
-*   Ensure all new resources are properly tagged.
-*   Test changes thoroughly in a development environment before proposing them for higher environments.
+#### Secrets Manager (`modules/data/secrets/`)
+- Database credentials storage
+- Secure secret rotation
 
-## 8. License
+### Storage Modules
 
-This Terraform infrastructure is part of the larger project licensed under the MIT License.
+#### S3 Documents (`modules/storage/s3-documents/`)
+- Documents bucket for uploaded files
+- Deploys bucket for EB application packages
+- Versioning enabled
+- Lifecycle policies for cost optimization
+
+### Auth Modules
+
+#### Cognito (`modules/auth/cognito/`)
+- User Pool for authentication
+- App Client configuration
+
+## 📋 Prerequisites
+
+Before deploying, ensure you have:
+
+1. **Terraform CLI** (v1.6.0+)
+   ```bash
+   terraform version
+   ```
+
+2. **AWS CLI** configured
+   ```bash
+   aws configure
+   ```
+
+3. **AWS Credentials** with appropriate permissions:
+   - EC2, RDS, S3, IAM, Elastic Beanstalk, Cognito
+   - Secrets Manager
+
+## 🚀 Deployment
+
+### Deploy Infrastructure
+
+```bash
+# Navigate to environment
+cd terraform/environments/dev
+
+# Initialize Terraform
+terraform init
+
+# Review changes
+terraform plan
+
+# Apply changes
+terraform apply
+```
+
+### Configure Variables
+
+Create a `dev.tfvars` file or use environment variables:
+
+```hcl
+environment     = "dev"
+primary_region  = "af-south-1"
+```
+
+### Destroy Infrastructure
+
+```bash
+terraform destroy
+```
+
+## 💰 Cost Estimates
+
+### Development Environment (Monthly)
+
+| Service | Configuration | Cost (USD) |
+|---------|--------------|-------------|
+| EC2 (EBS) | 1 × t3.micro, 8GB SSD | $8.00 |
+| RDS MySQL | 1 × db.t3.micro, Multi-AZ | $24.00 |
+| S3 | Documents + Deploys (~5GB) | $1.50 |
+| NAT Gateway | 1 × nat-1GB-data | $32.00 |
+| ALB | Application Load Balancer | $16.00 |
+| Data Transfer | ~10GB/month | $1.00 |
+| Cognito | 50 MAU | $0.00 |
+| Secrets Manager | 1 secret | $0.50 |
+| Route 53 | 1 hosted zone | $0.50 |
+| EIP | 1 Elastic IP | $3.00 |
+
+**Total: ~$86.50/month**
+
+### Production Environment (Estimated)
+
+| Service | Configuration | Cost (USD) |
+|---------|--------------|-------------|
+| EC2 (EBS) | 2 × t3.small | $32.00 |
+| RDS MySQL | 2 × db.t3.small, Multi-AZ | $120.00 |
+| S3 | ~50GB | $5.00 |
+| NAT Gateway | 1 × nat-10GB-data | $32.00 |
+| ALB | Application Load Balancer | $22.00 |
+| Other services | | $15.00 |
+
+**Total: ~$226/month**
+
+## 🔐 Security
+
+### Network Security
+- VPC with public/private subnet isolation
+- Security groups with least-privilege access
+- No public access to RDS or EB instances
+- NAT Gateway for outbound internet access
+
+### Data Security
+- S3 encryption (AES-256)
+- RDS encryption at rest
+- Secrets Manager for credentials
+- SSL/TLS in transit
+
+### IAM Security
+- EB instance profile with limited permissions
+- Service roles with minimum required policies
+- No root user access
+
+## 🔄 CI/CD Integration
+
+The infrastructure deployment integrates with GitHub Actions:
+
+```yaml
+# Trigger on workflow_dispatch or commit message contains [terraform]
+terraform init
+terraform plan -var-file=dev.tfvars
+terraform apply -var-file=dev.tfvars -auto-approve
+```
+
+## 📝 Module Outputs
+
+Key outputs from the deployment:
+
+- `environment_url` - Application URL
+- `database_endpoint` - RDS endpoint (sensitive)
+- `documents_bucket` - Documents S3 bucket name
+- `deploys_bucket` - Deployments S3 bucket name
+
+## 🔧 Customization
+
+### Modify Instance Type
+
+In [`environments/dev/main.tf`](environments/dev/main.tf):
+```hcl
+module "elastic_beanstalk" {
+  instance_type = "t3.small"  # Change from t3.micro
+}
+```
+
+### Enable Multi-AZ
+
+```hcl
+module "rds_mysql" {
+  multi_az = true
+}
+```
+
+### Adjust Auto-Scaling
+
+```hcl
+module "elastic_beanstalk" {
+  min_instance_count = 2
+  max_instance_count = 8
+}
+```
+
+## 📄 License
+
+This Terraform configuration is part of the Plotihub project licensed under the MIT License.
