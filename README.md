@@ -5,6 +5,8 @@
 ![AWS](https://img.shields.io/badge/AWS-Elastic%20Beanstalk-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+![Architecture](aws_arch.svg)
+
 Plotihub is a property management API built with Django and Django REST Framework, designed specifically for the Kenyan property market. It helps property owners automate rent collection, maintenance logging, and tenant management.
 
 ## 📋 Table of Contents
@@ -31,21 +33,7 @@ Plotihub is a property management API built with Django and Django REST Framewor
 
 ## 🏗️ Architecture
 
-```
-                          Internet
-                             |
-                        [Route 53]
-                             |
-                    [Application Load Balancer]
-                             |
-                    [Elastic Beanstalk]
-                     (Auto-scaling 1-4)
-                             |
-              +--------------+--------------+
-              |              |              |
-         [RDS MySQL]    [S3 Storage]  [Cognito]
-        (Multi-AZ)      (Documents)   (Auth)
-```
+![AWS Architecture](aws_arch.svg)
 
 ### Key Architecture Decisions
 
