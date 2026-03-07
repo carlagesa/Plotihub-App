@@ -1,11 +1,11 @@
 variable "primary_region" {
-  description = "The primary AWS region."
+  description = "The primary AWS region - af-south-1 for lowest latency to Kenya"
   type        = string
-  default     = "us-east-1"
+  default     = "af-south-1"
 }
 
-variable "secondary_region" {
-  description = "The secondary AWS region."
+variable "environment" {
+  description = "Development environment"
   type        = string
-  default     = "us-east-2"
+  default     = "dev"
 }
