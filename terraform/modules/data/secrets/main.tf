@@ -1,3 +1,6 @@
+# Secrets Module for Single-Region Deployment
+# This module creates database credentials stored in AWS Secrets Manager
+
 # This resource generates a strong, random password.
 resource "random_password" "db_password" {
   length           = 32
@@ -7,25 +10,23 @@ resource "random_password" "db_password" {
 
 # This defines the secret in AWS Secrets Manager.
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name = "${var.environment}/database-credentials"
-
-  # This block is crucial for multi-region. It automatically creates
-  # a read-replica of the secret in our secondary region.
-  replica {
-    region = var.secondary_region
-  }
+  name        = "${var.environment}/database-credentials"
+  description = "Database credentials for Plotihub ${var.environment} environment"
+  
+  # Single-region - no replica needed
 }
 
 # This resource populates the secret with a value (a "version").
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
 
-  # We store the credentials in a structured JSON format, which is easy for applications to parse.
-  # The password value comes directly from the 'random_password' resource above.
+  # Store credentials in structured JSON format for MySQL
   secret_string = jsonencode({
-    username = "dbadmin"
+    username = "plotihub_admin"
     password = random_password.db_password.result
-    engine   = "aurora-mysql"
+    engine   = "mysql"
+    host     = "localhost"  # Will be overridden by application
     port     = 3306
+    dbname   = "plotihub"
   })
 }

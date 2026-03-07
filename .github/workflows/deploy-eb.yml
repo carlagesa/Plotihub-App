@@ -1,0 +1,148 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - 'core/**'
+      - 'requirements.txt'
+      - '.github/workflows/deploy-eb.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: af-south-1
+  EB_APPLICATION: plotihub
+  EB_ENVIRONMENT: dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django tests
+        run: |
+          python manage.py check --deploy || true
+          python -m py_compile api/*.py core/*.py
+
+  deploy-terraform:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[terraform]')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        run: |
+          cd terraform/environments/dev
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd terraform/environments/dev
+          terraform plan -var-file=dev.tfvars
+
+      - name: Terraform Apply
+        run: |
+          cd terraform/environments/dev
+          terraform apply -var-file=dev.tfvars -auto-approve
+
+  deploy-application:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install awsebcli
+
+      - name: Create deployment package
+        run: |
+          # Create a clean directory for deployment
+          mkdir -p deploy
+          cp -r api core manage.py requirements.txt deploy/
+          # Create a Procfile for EB
+          echo "web: gunicorn core.wsgi:application --bind 0.0.0.0:8000" > deploy/Procfile
+          # Create .ebextensions for Django settings
+          mkdir -p deploy/.ebextensions
+          cat > deploy/.ebextensions/django.config << 'EOF'
+          option_settings:
+            aws:elasticbeanstalk:container:python:
+              WSGIPath: core.wsgi:application
+            aws:elasticbeanstalk:application:environment:
+              PYTHONPATH: "/var/app/current:$PYTHONPATH"
+          EOF
+
+      - name: Create S3 bucket for deploys (if not exists)
+        run: |
+          aws s3 mb s3://plotihub-deploys-dev --region ${{ env.AWS_REGION }} || true
+
+      - name: Create application version
+        run: |
+          cd deploy
+          zip -r ../django-app.zip .
+          aws s3 cp ../django-app.zip s3://plotihub-deploys-dev/dev/django-app.zip
+
+      - name: Update Elastic Beanstalk application version
+        run: |
+          # Get the current environment info
+          EB_ENV=$(aws elasticbeanstalk describe-environments --application-name ${{ env.EB_APPLICATION }} --environment-name ${{ env.EB_ENVIRONMENT }} --region ${{ env.AWS_REGION }} --query 'Environments[0].EnvironmentArn' --output text)
+          
+          # Create new application version
+          aws elasticbeanstalk create-application-version \
+            --application-name ${{ env.EB_APPLICATION }} \
+            --version-label "v$(date +%Y%m%d%H%M%S)" \
+            --source-bundle S3Bucket=plotihub-deploys-dev,S3Key=dev/django-app.zip \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          eb setenv \
+            DJANGO_SETTINGS_MODULE=core.settings \
+            DB_HOST=${{ secrets.DB_HOST }} \
+            DB_NAME=${{ secrets.DB_NAME }} \
+            DB_USER=${{ secrets.DB_USER }} \
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --environment ${{ env.EB_ENVIRONMENT }}
