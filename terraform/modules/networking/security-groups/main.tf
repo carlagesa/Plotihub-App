@@ -13,7 +13,7 @@ resource "aws_security_group" "eb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  
+
   # Allow HTTP for local development
   egress {
     from_port   = 80
@@ -28,7 +28,7 @@ resource "aws_security_group" "rds" {
   name_prefix = "${var.environment}-rds-sg-"
   vpc_id      = var.vpc_id
   description = "Security group for RDS MySQL database"
-  
+
   # No inbound rules - access controlled by source security groups
 }
 
@@ -45,7 +45,7 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  
+
   ingress {
     from_port   = 443
     to_port     = 443

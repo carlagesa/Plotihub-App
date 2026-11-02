@@ -15,8 +15,8 @@ resource "aws_elastic_beanstalk_application" "app" {
 resource "aws_elastic_beanstalk_application_version" "default" {
   name        = "initial-version-${timestamp()}"
   application = aws_elastic_beanstalk_application.app.name
-  bucket      = "plotihub-deploys-${data.aws_region.current.name}"
-  key         = "dev/django-app.zip"
+  bucket      = var.deployment_bucket
+  key         = "${var.environment}/${var.deployment_key}"
 }
 
 # Option Settings for Python/Django
@@ -141,7 +141,7 @@ resource "aws_elastic_beanstalk_environment" "env" {
   application         = aws_elastic_beanstalk_application.app.name
   solution_stack_name = "Python 3.11 running on 64bit Amazon Linux 2023"
   # Use version from CI/CD
-  version_label      = aws_elastic_beanstalk_application_version.default.name
+  version_label = aws_elastic_beanstalk_application_version.default.name
 
   setting {
     namespace = "aws:ec2:vpc"

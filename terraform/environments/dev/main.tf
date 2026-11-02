@@ -6,7 +6,7 @@
 
 # For Local stack only
 provider "aws" {
-  alias                       = "primary"    # ← add this
+  alias                       = "primary" # ← add this
   region                      = "af-south-1"
   access_key                  = "test"
   secret_key                  = "test"
@@ -15,15 +15,18 @@ provider "aws" {
   skip_requesting_account_id  = true
 
   endpoints {
-    s3       = "http://s3.localhost.localstack.cloud:4566"
-    sts      = "http://localhost:4566"
-    iam      = "http://localhost:4566"
-    lambda   = "http://localhost:4566"
-    dynamodb = "http://localhost:4566"
-    rds      = "http://localhost:4566"      # ← also add missing services
-    ec2      = "http://localhost:4566"
+    s3               = "http://s3.localhost.localstack.cloud:4566"
+    sts              = "http://localhost:4566"
+    iam              = "http://localhost:4566"
+    lambda           = "http://localhost:4566"
+    dynamodb         = "http://localhost:4566"
+    rds              = "http://localhost:4566" # ← also add missing services
+    ec2              = "http://localhost:4566"
     elasticbeanstalk = "http://localhost:4566"
-    secretsmanager = "http://localhost:4566"
+    secretsmanager   = "http://localhost:4566"
+    cognitoidp       = "http://localhost:4566"
+    cloudwatch       = "http://localhost:4566"
+    cloudwatchlogs   = "http://localhost:4566"
   }
 }
 
@@ -49,7 +52,7 @@ module "security_groups" {
 
 # --- Data Layer ---
 module "secrets" {
-  source = "../../modules/data/secrets"
+  source      = "../../modules/data/secrets"
   environment = var.environment
   # No secondary region needed for single-region
 }
@@ -59,18 +62,18 @@ module "rds_mysql" {
   providers = {
     aws = aws.primary
   }
-  environment            = var.environment
-  vpc_id                 = module.vpc.vpc_id
-  subnet_ids             = module.vpc.private_subnet_ids
-  security_group_id      = module.security_groups.rds_sg_id
-  db_instance_class      = "db.t3.micro"  # Smallest for dev - upgrade for prod
-  allocated_storage      = 20
-  db_name                 = "plotihub"
-  master_username        = "plotihub_admin"
-  master_password        = module.secrets.db_credentials_map.password
-  backup_retention_days  = 7
-  skip_final_snapshot    = true
-  multi_az              = true  # Enable Multi-AZ for high availability
+  environment           = var.environment
+  vpc_id                = module.vpc.vpc_id
+  subnet_ids            = module.vpc.private_subnet_ids
+  security_group_id     = module.security_groups.rds_sg_id
+  db_instance_class     = var.db_instance_class
+  allocated_storage     = 20
+  db_name               = "plotihub"
+  master_username       = "plotihub_admin"
+  master_password       = module.secrets.db_credentials_map.password
+  backup_retention_days = var.backup_retention_days
+  skip_final_snapshot   = true
+  multi_az              = var.multi_az
 }
 
 # --- Storage Layer ---
@@ -79,20 +82,20 @@ module "s3_storage" {
   providers = {
     aws = aws.primary
   }
-  environment  = var.environment
+  environment   = var.environment
   bucket_prefix = "plotihub"
-  
+
   # Lifecycle rules for cost optimization
   lifecycle_rules = [
     {
-      id      = "archive-old-documents"
-      status  = "Enabled"
+      id              = "archive-old-documents"
+      status          = "Enabled"
       transition_days = 30
       storage_class   = "STANDARD_IA"
     },
     {
-      id      = "delete-old-versions"
-      status  = "Enabled"
+      id              = "delete-old-versions"
+      status          = "Enabled"
       expiration_days = 365
     }
   ]
@@ -104,11 +107,13 @@ module "elastic_beanstalk" {
   providers = {
     aws = aws.primary
   }
-  environment            = var.environment
+  environment           = var.environment
   app_name              = "plotihub"
-  instance_type         = "t3.micro"  # t3.micro is free-tier eligible
-  min_instance_count    = 1
-  max_instance_count    = 4  # Scales up for end-of-month spikes
+  instance_type         = var.instance_type
+  min_instance_count    = var.min_instance_count
+  max_instance_count    = var.max_instance_count
+  deployment_bucket     = module.s3_storage.deploys_bucket_name
+  deployment_key        = "django-app.zip"
   vpc_id                = module.vpc.vpc_id
   public_subnet_ids     = module.vpc.public_subnet_ids
   private_subnet_ids    = module.vpc.private_subnet_ids
@@ -118,7 +123,7 @@ module "elastic_beanstalk" {
   db_username           = "plotihub_admin"
   db_password           = module.secrets.db_credentials_map.password
   rds_security_group_id = module.security_groups.rds_sg_id
-  
+
   depends_on = [module.rds_mysql]
 }
 
