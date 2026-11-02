@@ -72,3 +72,14 @@ variable "rds_security_group_id" {
   description = "Security group ID for RDS"
   type        = string
 }
+
+variable "deployment_bucket" {
+  description = "S3 bucket containing the initial Elastic Beanstalk application package"
+  type        = string
+}
+
+variable "deployment_key" {
+  description = "S3 key containing the initial Elastic Beanstalk application package"
+  type        = string
+  default     = "django-app.zip"
+}

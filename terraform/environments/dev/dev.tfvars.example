@@ -1,0 +1,12 @@
+db_instance_class      = "db.t3.micro"
+instance_type          = "t3.micro"
+min_instance_count     = 1
+max_instance_count     = 4
+multi_az               = true
+backup_retention_days  = 7
+
+tags = {
+  Project     = "Plotihub"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}

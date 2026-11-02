@@ -31,6 +31,22 @@ Plotihub is a property management API built with Django and Django REST Framewor
 - **RESTful API** - Full Django REST Framework support
 - **API Documentation** - Interactive Swagger/OpenAPI documentation
 
+## Local AWS Development
+
+The infrastructure can be developed locally with LocalStack; no AWS account is required.
+
+1. Install Docker Desktop.
+2. Start LocalStack:
+   ```powershell
+   .\scripts\start-localstack.ps1
+   ```
+3. Validate the Terraform configuration:
+   ```powershell
+   .\scripts\validate-localstack.ps1
+   ```
+
+See the [infrastructure flow](docs/architecture-flow.md) and [LocalStack setup](localstack/README.md) for details.
+
 ## 🏗️ Architecture
 
 ![AWS Architecture](aws_arch.svg)

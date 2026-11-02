@@ -12,7 +12,7 @@ resource "random_password" "db_password" {
 resource "aws_secretsmanager_secret" "db_credentials" {
   name        = "${var.environment}/database-credentials"
   description = "Database credentials for Plotihub ${var.environment} environment"
-  
+
   # Single-region - no replica needed
 }
 
@@ -25,7 +25,7 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
     username = "plotihub_admin"
     password = random_password.db_password.result
     engine   = "mysql"
-    host     = "localhost"  # Will be overridden by application
+    host     = "localhost" # Will be overridden by application
     port     = 3306
     dbname   = "plotihub"
   })
