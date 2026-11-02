@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.17.1
+          terraform_version: 1.13.5
       - name: Format and validate
         env:
           ENVIRONMENT: ${{ needs.select.outputs.environment }}
