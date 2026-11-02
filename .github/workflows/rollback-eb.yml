@@ -1,0 +1,41 @@
+name: Rollback Elastic Beanstalk Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to roll back
+        required: true
+        type: choice
+        options: [dev, staging, prod]
+        default: staging
+      version-label:
+        description: Previous Elastic Beanstalk application version label
+        required: true
+        type: string
+
+env:
+  AWS_REGION: af-south-1
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Redeploy previous version
+        env:
+          EB_ENVIRONMENT: plotihub-${{ inputs.environment }}
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "${EB_ENVIRONMENT}" \
+            --version-label "${{ inputs.version-label }}" \
+            --region "${AWS_REGION}"
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names "${EB_ENVIRONMENT}" \
+            --region "${AWS_REGION}"

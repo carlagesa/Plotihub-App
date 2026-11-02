@@ -45,8 +45,8 @@ resource "aws_cognito_user_pool_client" "main" {
 
   # Defines the OAuth2 flows this client is allowed to use.
   # 'implicit' is common for SPAs.
-  allowed_oauth_flows = ["implicit"]
-  allowed_oauth_scopes = ["phone", "email", "openid", "profile"]
+  allowed_oauth_flows                  = ["implicit"]
+  allowed_oauth_scopes                 = ["phone", "email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
 
   # The URLs our application will redirect to after a successful login.

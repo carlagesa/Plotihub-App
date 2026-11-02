@@ -5,7 +5,6 @@
 ![AWS](https://img.shields.io/badge/AWS-Elastic%20Beanstalk-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-![Architecture](aws_arch.svg)
 
 Plotihub is a property management API built with Django and Django REST Framework, designed specifically for the Kenyan property market. It helps property owners automate rent collection, maintenance logging, and tenant management.
 
@@ -30,6 +29,22 @@ Plotihub is a property management API built with Django and Django REST Framewor
 - **Maintenance Requests** - Log and manage maintenance issues
 - **RESTful API** - Full Django REST Framework support
 - **API Documentation** - Interactive Swagger/OpenAPI documentation
+
+## Local AWS Development
+
+The infrastructure can be developed locally with LocalStack; no AWS account is required.
+
+1. Install Docker Desktop.
+2. Start LocalStack:
+   ```powershell
+   .\scripts\start-localstack.ps1
+   ```
+3. Validate the Terraform configuration:
+   ```powershell
+   .\scripts\validate-localstack.ps1
+   ```
+
+See the [infrastructure flow](docs/architecture-flow.md) and [LocalStack setup](localstack/README.md) for details.
 
 ## 🏗️ Architecture
 

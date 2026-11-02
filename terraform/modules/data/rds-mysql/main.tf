@@ -22,7 +22,7 @@ resource "aws_db_instance" "main" {
 
   # Storage
   allocated_storage     = var.allocated_storage
-  max_allocated_storage = 100  # Allows storage to grow up to 100GB
+  max_allocated_storage = 100 # Allows storage to grow up to 100GB
   storage_type          = "gp3"
   storage_encrypted     = true
 
@@ -36,17 +36,17 @@ resource "aws_db_instance" "main" {
 
   # Backup & Maintenance
   backup_retention_period = var.backup_retention_days
-  backup_window           = "03:00-04:00"  # UTC
+  backup_window           = "03:00-04:00" # UTC
   maintenance_window      = "mon:04:00-mon:05:00"
   skip_final_snapshot     = var.skip_final_snapshot
-  deletion_protection    = false  # Set to true in production
+  deletion_protection     = false # Set to true in production
 
   # Multi-AZ for high availability
   multi_az = var.multi_az
 
   # Performance Insights
-  monitoring_interval = 0  # Set to 60 for production (adds cost)
-  
+  monitoring_interval = 0 # Set to 60 for production (adds cost)
+
   # Tags
   tags = {
     Name        = "${var.environment}-plotihub-db"

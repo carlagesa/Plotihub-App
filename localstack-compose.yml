@@ -1,0 +1,19 @@
+services:
+  localstack:
+    image: localstack/localstack:4.10
+    container_name: plotihub-localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      - SERVICES=s3,iam,sts,rds,ec2,elasticbeanstalk,secretsmanager,cognito-idp,cloudwatch,logs
+      - AWS_DEFAULT_REGION=af-south-1
+      - DEBUG=0
+      - PERSISTENCE=1
+    volumes:
+      - plotihub-localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack/init:/etc/localstack/init/ready.d:ro
+
+volumes:
+  plotihub-localstack:
